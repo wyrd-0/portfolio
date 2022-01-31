@@ -1,0 +1,285 @@
+<!--
+A basic test report page using chart.js, bootsrap and 
+-->
+
+<!DOCTYPE html>
+<html>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+<!-- Tabulator  http://tabulator.info/docs/5.0/install#sources-cdn
+<link href="https://unpkg.com/tabulator-tables@5.0.10/dist/css/tabulator.min.css" rel="stylesheet">
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.0.10/dist/js/tabulator.min.js"></script>
+-->
+
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	
+    <title id="CrtlNums"></title>
+	<style>
+		.col-sm-5 {
+			text-align: center;
+			font-size: 14px;
+			Border: 2px;
+			border-style: solid;
+		}
+		
+		.col-sm-4 {
+			text-align: center;
+			font-size: 14px;
+		}
+		
+		.sub-head-center {
+			text-align: center;
+			Border: 2px;
+			border-right-style: solid;
+			border-left-style: solid;
+		}
+		
+		.data-col-center {
+			text-align: center;
+			Border: 2px;
+			border-right-style: solid;
+			border-left-style: solid;
+		}
+		
+		.result {
+			text-align: center;
+			font-size: 48px;
+			Border: 2px;
+			border-style: solid;
+		}
+		
+		.info-header {
+			text-align: center;
+			font-size: 14px;
+			Border: 2px;
+			border-top-style: solid;
+			border-right-style: solid;
+			border-bottom-style: none;
+			border-left-style: solid;
+		}
+		
+		.sub-header {
+			text-align: left;
+			Border: 2px;
+			border-style: solid;
+		}
+	</style>
+  </head>
+<body>
+<div class="container" align="center">
+	<div class="col-sm-12" id="PartNumber" style="text-align: center; font-size: 20px;"></div>
+	<div class="col-sm-12 result" id="TestResult"></div>
+	<hr>
+	<div class="row col-sm-9 d-flex justify-content-center" align="center">
+		<div class="col-sm-5" id="Technician"></div>
+		<div class="col-sm-2"></div>
+		<div class="col-sm-5">
+			<div class="col-sm-12 row" id="TestResult">
+				<div class="col-sm-6" id="MachineName" style="Border: 2px; border-right-style: solid"></div>
+				<div class="col-sm-6" id="TestTime"></div>
+			</div>
+		</div>
+	</div>
+	<br>
+	<div class="row col-sm-9 d-flex justify-content-center" align="center">
+		<div class="col-sm-5 info-header">OE Info</div>
+		<div class="col-sm-2"></div>
+		<div class="col-sm-5 info-header">DUT Info</div>
+		<div class="col-sm-5" id="OeInfo"></div>
+		<div class="col-sm-2"></div>
+		<div class="col-sm-5" id="DutInfo"></div>
+	</div>
+	
+	<div class="col-sm-9">
+		<canvas id="MAFChart"></canvas>
+	</div>
+	<hr>
+	
+	
+	<div class="row col-sm-9 d-flex justify-content-center" align="center">
+		<div class="row col-sm-12">
+			<div class="col-sm-5 info-header">OE Details</div>
+			<div class="col-sm-2"></div>
+			<div class="col-sm-5 info-header">DUT Details</div>
+		</div>
+		<div class="row col-sm-12">
+			<div class="col-sm-5 info-header">
+				<div class="row col-sm-12">
+					<div class="col-sm-4">Flow Rate</div>
+					<div class="sub-head-center col-sm-4">Output</div>
+					<div class="col-sm-4">Variance</div>
+				</div>
+			</div>
+			<div class="col-sm-2"></div>
+			<div class="col-sm-5 info-header">
+				<div class="row col-sm-12">
+					<div class="col-sm-4">Flow Rate</div>
+					<div class="sub-head-center col-sm-4">Output</div>
+					<div class="col-sm-4">Variance</div>
+				</div>
+			</div>
+		</div>
+		<div class="row col-sm-12">
+			<div class="col-sm-5">
+				<div class="row col-sm-12">
+					<div class=" col-sm-4" id="OeGps">OeGps</div>
+					<div class="data-col-center col-sm-4" id="OeOutput">OeOutput</div>
+					<div class="col-sm-4" id="OeVar">OeVar</div>
+				</div>
+			</div>
+			<div class="col-sm-2"></div>
+			<div class="col-sm-5">
+				<div class="row col-sm-12 data-row">
+					<div class="col-sm-4" id="DutGps">DutGps</div>
+					<div class="data-col-center col-sm-4" id="DutOutput">DutOutput</div>
+					<div class=" col-sm-4" id="DutVar">DutVar</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<br>
+</div>
+<script>
+
+const jsonString = `{"OeData": [{"x": 0.049, "y": 1.01, "var": "0.2%"}, {"x": 1.274, "y": 1.116, "var": "0.2%"}, {"x": 5.528, "y": 1.416, "var": "0.2%"}, {"x": 10.701, "y": 1.716, "var": "0.2%"}, {"x": 30.102, "y": 2.425, "var": "0.2%"}, {"x": 56.995, "y": 3.01, "var": "0.2%"}, {"x": 105.45, "y": 3.634, "var": "0.2%"}],
+"DutData": [{"x": 0.059, "y": 1.12, "var": "0.21%"}, {"x": 1.324, "y": 1.176, "var": "0.13%"}, {"x": 5.658, "y": 1.516, "var": "0.24%"}, {"x": 10.801, "y": 1.716, "var": "0.22%"}, {"x": 30.302, "y": 2.525, "var": "0.27%"}, {"x": 56.705, "y": 3.11, "var": "0.14%"}, {"x": 105.45, "y": 3.68, "var": "0.26%"}],
+"High": [{"x": 0.049, "y": 1.325}, {"x": 1.274, "y": 1.437}, {"x": 5.528, "y": 1.755}, {"x": 10.701, "y": 2.073}, {"x": 30.102, "y": 2.825}, {"x": 56.995, "y": 3.445}, {"x": 105.45, "y": 4.106}],
+"Low": [{"x": 0.049, "y": 0.695}, {"x": 1.274, "y": 0.795}, {"x": 5.528, "y": 1.077}, {"x": 10.701, "y": 1.359}, {"x": 30.102, "y": 2.025}, {"x": 56.995, "y": 2.575}, {"x": 105.45, "y": 3.162}],
+"OeInfo": ["OE", "1234567890", "Super Parts OE", "A1234567890"],
+"DutInfo": ["A-MAF1180", "1234567890", "Super Aftermarket", "CRTAA12345678907810"],
+"Technician": "John Doe",
+"MachineName": "MAF 3-X",
+"TestResult": "PASS",
+"TestTime": "10:08 AM 01/29/22"}`;
+
+const jsonVals = JSON.parse(jsonString)
+
+const CtrlNums = jsonVals["OeInfo"][0] + "vs" + jsonVals["DutInfo"][0];
+const OeInfo = jsonVals["OeInfo"];
+const DutInfo = jsonVals["DutInfo"];
+
+const OeData = jsonVals["OeData"];
+const DutData = jsonVals["DutData"];
+const High = jsonVals["High"];
+const Low = jsonVals["Low"];
+
+document.querySelector('title').textContent = CtrlNums;
+document.getElementById('PartNumber').innerText = "Part Number : 245x1123";
+document.getElementById('OeInfo').innerHTML = "OE CN : " + OeInfo[0] + "<br>OE Number : " + OeInfo[1] + "<br>OE Vendor Name : " + OeInfo[2] + "<br>OE Vendor Number : " + OeInfo[3];
+document.getElementById('DutInfo').innerHTML = "DUT CN : " + DutInfo[0] + "<br>Dut Number : " + DutInfo[1] + "<br>DUT Vendor Name : " + DutInfo[2] + "<br>DUT Vendor Number : " + DutInfo[3];
+document.getElementById('Technician').innerText = "Technician : " + jsonVals["Technician"];
+document.getElementById('MachineName').innerText = "Machine Name : " + jsonVals["MachineName"];
+document.getElementById('TestTime').innerText = "Time: "+ jsonVals["TestTime"];
+
+var result = document.getElementById('TestResult');
+result.innerText = jsonVals["TestResult"];
+
+if (jsonVals["TestResult"] == "PASS") {
+	document.getElementById('TestResult').style.backgroundColor = "#71ee71";
+	graphColor = "#51cc51";
+} else if (jsonVals["TestResult"] == "FAIL") {
+	document.getElementById('TestResult').style.backgroundColor = "#ff594e";
+	document.getElementById('TestResult').style.color = "white";
+	document.getElementById('TestResult').style.borderColor = "black";
+	graphColor = "#ff594e";
+}
+
+var OeGps = OeData[0]["x"].toString();
+var OeOutput = OeData[0]["y"].toString();
+var OeVar = "&le;" + OeData[0]["var"];
+
+var DutGps = DutData[0]["x"].toString();
+var DutOutput = DutData[0]["y"].toString();
+var DutVar = DutData[0]["var"];
+
+for (let i = 1; i < DutData.length; i++) {
+	OeGps += "<br>" + OeData[i]["x"].toString();
+	OeOutput += "<br>" + OeData[i]["y"].toString();
+	OeVar += "<br>&le;" + OeData[i]["var"];
+	DutGps += "<br>" + DutData[i]["x"].toString();
+	DutOutput += "<br>" + DutData[i]["y"].toString();
+	DutVar += "<br>" + DutData[i]["var"];
+}
+
+document.getElementById('OeGps').innerHTML = OeGps;
+document.getElementById('OeOutput').innerHTML = OeOutput;
+document.getElementById('OeVar').innerHTML = OeVar;
+document.getElementById('DutGps').innerHTML = DutGps;
+document.getElementById('DutOutput').innerHTML = DutOutput;
+document.getElementById('DutVar').innerHTML = DutVar;
+
+const data = {
+  datasets: [{
+	type: 'scatter',
+    label: 'MAF1127',
+    backgroundColor: 'black',
+    borderColor: 'black',
+    data: OeData,
+	showLine: true,
+	cubicInterpolationMode: "monotone",
+  },{
+	type: 'scatter',
+    label: 'High',
+    backgroundColor: '#ECA918',
+    borderColor: '#ECA918',
+    data: High,
+	showLine: true,
+	cubicInterpolationMode: "monotone",
+	pointRadius: 0,
+	borderDash: [5, 10]
+  },{
+	type: 'scatter',
+    label: 'Low',
+    backgroundColor: '#1889EC',
+    borderColor: '#1889EC',
+    data: Low,
+	showLine: true,
+	cubicInterpolationMode: "monotone",
+	pointRadius: 0,
+	borderDash: [5, 10]
+  },{
+	type: 'scatter',
+    label: 'A-MAF1180',
+    backgroundColor: graphColor,
+    borderColor: graphColor,
+    data: DutData,
+	showLine: true,
+	cubicInterpolationMode: "monotone"
+  }]
+};
+const config = {
+	data,
+	options: {
+		scales: {
+			x: {
+				title: {
+					display: true,
+					text: "Flow Rate (g/s)",
+					font: {size: 14},
+				}
+			},
+			y: {
+				title: {
+					display: true,
+					text: "Voltage",
+					font: {size: 14},
+				}
+			}
+		}
+	},
+};
+
+var myChart = new Chart(
+    document.getElementById('MAFChart'),
+    config
+  );
+</script>
+</body>
+</html>
